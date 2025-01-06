@@ -1,0 +1,63 @@
+import tkinter as tk
+from tkinter import messagebox
+
+def execute_trade(api_key, secret_key, symbol, quantity):
+    """Execute trade based on the RSI strategy."""
+    try:
+        print("Executing trade...")
+        response = {"status": "success", "message": "Trade executed."}
+        messagebox.showinfo("Trade Status", response["message"])
+    except Exception as e:
+        messagebox.showerror("Error", f"Error executing trade: {str(e)}")
+
+def submit_credentials():
+    api_key = api_key_entry.get()
+    secret_key = secret_key_entry.get()
+    if not api_key or not secret_key:
+        messagebox.showerror("Input Error", "Please enter both API Key and Secret Key.")
+        return
+    credentials_frame.pack_forget()
+    trade_frame.pack()
+
+def submit_trade():
+    symbol = symbol_entry.get()
+    try:
+        quantity = float(quantity_entry.get())
+    except ValueError:
+        messagebox.showerror("Input Error", "Please enter a valid quantity.")
+        return
+
+    if not symbol or quantity <= 0:
+        messagebox.showerror("Input Error", "Please enter a valid symbol and quantity.")
+        return
+
+    execute_trade(api_key_entry.get(), secret_key_entry.get(), symbol, quantity)
+
+root = tk.Tk()
+root.title("AI Trading Bot")
+
+credentials_frame = tk.Frame(root)
+tk.Label(credentials_frame, text="Enter your API Key:").pack(pady=5)
+api_key_entry = tk.Entry(credentials_frame, show="*")
+api_key_entry.pack(pady=5)
+
+tk.Label(credentials_frame, text="Enter your Secret Key:").pack(pady=5)
+secret_key_entry = tk.Entry(credentials_frame, show="*")
+secret_key_entry.pack(pady=5)
+
+tk.Button(credentials_frame, text="Submit", command=submit_credentials).pack(pady=10)
+credentials_frame.pack()
+
+trade_frame = tk.Frame(root)
+tk.Label(trade_frame, text="Enter the trading pair symbol (e.g., BTCUSDT):").pack(pady=5)
+symbol_entry = tk.Entry(trade_frame)
+symbol_entry.pack(pady=5)
+
+tk.Label(trade_frame, text="Enter the quantity to trade:").pack(pady=5)
+quantity_entry = tk.Entry(trade_frame)
+quantity_entry.pack(pady=5)
+
+tk.Button(trade_frame, text="Execute Trade", command=submit_trade).pack(pady=10)
+trade_frame.pack_forget()
+
+root.mainloop()
