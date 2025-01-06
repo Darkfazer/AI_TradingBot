@@ -1,63 +1,93 @@
-import tkinter as tk
-from tkinter import messagebox
+def main():
+    print("Welcome to the AI Trading Bot!")
 
-def execute_trade(api_key, secret_key, symbol, quantity):
-    """Execute trade based on the RSI strategy."""
-    try:
-        print("Executing trade...")
-        response = {"status": "success", "message": "Trade executed."}
-        messagebox.showinfo("Trade Status", response["message"])
-    except Exception as e:
-        messagebox.showerror("Error", f"Error executing trade: {str(e)}")
+    # Step 1: Get user credentials
+    api_key = input("Enter your Alpaca API Key: ")
+    secret_key = input("Enter your Alpaca Secret Key: ")
 
-def submit_credentials():
-    api_key = api_key_entry.get()
-    secret_key = secret_key_entry.get()
-    if not api_key or not secret_key:
-        messagebox.showerror("Input Error", "Please enter both API Key and Secret Key.")
+    # Step 2: Choose strategy
+    strategy = input("Choose a strategy (RSI/SMA): ").strip().upper()
+    if strategy not in ["RSI", "SMA"]:
+        print("Invalid strategy. Please choose either 'RSI' or 'SMA'.")
         return
-    credentials_frame.pack_forget()
-    trade_frame.pack()
 
-def submit_trade():
-    symbol = symbol_entry.get()
+    # Step 3: Select asset type
+    asset_types = ["Crypto", "Gold", "Stocks", "Forex", "Oil", "Silver", 
+                   "Indices", "ETFs", "Treasuries", "Commodities"]
+    print("\nChoose an asset type:")
+    for i, asset in enumerate(asset_types, start=1):
+        print(f"{i}. {asset}")
+    
     try:
-        quantity = float(quantity_entry.get())
+        choice = int(input("\nEnter the number of your choice (1-10): "))
+        if 1 <= choice <= len(asset_types):
+            asset_type = asset_types[choice - 1]
+            print(f"You selected: {asset_type}")
+        else:
+            print("Invalid choice. Please select a number between 1 and 10.")
+            return
     except ValueError:
-        messagebox.showerror("Input Error", "Please enter a valid quantity.")
+        print("Invalid input. Please enter a number.")
         return
 
-    if not symbol or quantity <= 0:
-        messagebox.showerror("Input Error", "Please enter a valid symbol and quantity.")
+    # Step 4: Select symbol based on asset type
+    symbols = {
+        "Crypto": ["BTC/USD", "ETH/USD", "XRP/USD", "LTC/USD", "ADA/USD"],
+        "Gold": ["XAU/USD"],
+        "Stocks": ["AAPL", "TSLA", "GOOGL", "AMZN", "MSFT"],
+        "Forex": ["EUR/USD", "USD/JPY", "GBP/USD", "AUD/USD", "USD/CHF"],
+        "Oil": ["WTI", "Brent"],
+        "Silver": ["XAG/USD"],
+        "Indices": ["SPX", "NASDAQ", "DOW", "FTSE", "DAX"],
+        "ETFs": ["SPY", "QQQ", "ARKK", "VTI", "EEM"],
+        "Treasuries": ["10Y", "2Y", "5Y", "30Y", "7Y"],
+        "Commodities": ["Copper", "Natural Gas", "Corn", "Wheat", "Soybeans"]
+    }
+
+    if asset_type in symbols:
+        print(f"\nChoose a trading symbol for {asset_type}:")
+        for i, sym in enumerate(symbols[asset_type], start=1):
+            print(f"{i}. {sym}")
+        try:
+            sym_choice = int(input("\nEnter the number of your choice: "))
+            if 1 <= sym_choice <= len(symbols[asset_type]):
+                symbol = symbols[asset_type][sym_choice - 1]
+                print(f"You selected: {symbol}")
+            else:
+                print("Invalid choice. Please select a valid number.")
+                return
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+            return
+    else:
+        print(f"No predefined symbols available for {asset_type}.")
         return
 
-    execute_trade(api_key_entry.get(), secret_key_entry.get(), symbol, quantity)
+    # Step 5: Enter quantity
+    try:
+        quantity = float(input("Enter the quantity to trade: "))
+    except ValueError:
+        print("Invalid quantity. Please enter a numeric value.")
+        return
 
-root = tk.Tk()
-root.title("AI Trading Bot")
+    # Step 6: Initialize and run the strategy
+    if strategy == "RSI":
+        rsi_bot = RSI_Strategy(api_key, secret_key)
+        print(f"Running RSI strategy for {symbol}...")
+        rsi_bot.trade(symbol, quantity)
+    elif strategy == "SMA":
+        try:
+            sma_fast = int(input("Enter the short SMA period: "))
+            sma_slow = int(input("Enter the long SMA period: "))
+        except ValueError:
+            print("Invalid SMA periods. Please enter integer values.")
+            return
 
-credentials_frame = tk.Frame(root)
-tk.Label(credentials_frame, text="Enter your API Key:").pack(pady=5)
-api_key_entry = tk.Entry(credentials_frame, show="*")
-api_key_entry.pack(pady=5)
+        sma_bot = SMA_Strategy(api_key, secret_key, sma_fast, sma_slow)
+        print(f"Running SMA strategy for {symbol}...")
+        sma_bot.start_crypto_SMA(symbol, quantity)
 
-tk.Label(credentials_frame, text="Enter your Secret Key:").pack(pady=5)
-secret_key_entry = tk.Entry(credentials_frame, show="*")
-secret_key_entry.pack(pady=5)
+    print("Trading bot is now running. Good luck!")
 
-tk.Button(credentials_frame, text="Submit", command=submit_credentials).pack(pady=10)
-credentials_frame.pack()
-
-trade_frame = tk.Frame(root)
-tk.Label(trade_frame, text="Enter the trading pair symbol (e.g., BTCUSDT):").pack(pady=5)
-symbol_entry = tk.Entry(trade_frame)
-symbol_entry.pack(pady=5)
-
-tk.Label(trade_frame, text="Enter the quantity to trade:").pack(pady=5)
-quantity_entry = tk.Entry(trade_frame)
-quantity_entry.pack(pady=5)
-
-tk.Button(trade_frame, text="Execute Trade", command=submit_trade).pack(pady=10)
-trade_frame.pack_forget()
-
-root.mainloop()
+if __name__ == "__main__":
+    main()
